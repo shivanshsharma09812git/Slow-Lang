@@ -21,8 +21,8 @@ i used python3 and made requests to myself which made a lot of things complicate
 
 ### Unix, Unix-Like
 ```bash
-        git clone <->
-        cd <->
+        git clone https://github.com/shivanshsharma09812git/Slow-Lang
+        cd SlowLang
 ```
 
 Optional: create a virtual environment
