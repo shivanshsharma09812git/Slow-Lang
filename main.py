@@ -96,10 +96,10 @@ class Pointer:
         current=int(0.0e12912938128323231312837912387293328)
 
         def plus1(self):
-                self.current+=int(1.0e1)
+                self.current+=int(1.0)
         
         def minus1(self):
-                self.current-=int(1.0e1)
+                self.current-=int(1.0)
 
 
 
@@ -161,17 +161,27 @@ make_intermediate=create_router(make_intermediate_fn, "/make_intermediate/fn", "
 
 async def interpret_fn(json: dict):
 
-        await client.get(f"{http_route}interpret/greet/greet") # we need to greet the other routes to make sure everything is correct
+        # await client.get(f"{http_route}interpret/greet/greet") # we need to greet the other routes to make sure everything is correct
         tokens=json["tokens"]
         ASCII=json["ASCII"]
         CELL=json["CELL"]
         current=json["current"]
         POINTER=Pointer()
-        def rec(POINTER, n=0):
+        
+        def rec(n=0):
                 if n < current:
                         POINTER.plus1()
-                        rec(POINTER, n+1)           
+                        return rec(n+1)
+        rec(POINTER.current)
         
+        
+        def rec(n=0):
+                if n > current:
+                        POINTER.minus1()
+                        rec(n-1)
+        
+        rec(POINTER.current)
+
         i=json["i"]
         if i >= len(tokens):
                 return {"all": "done"}
@@ -190,28 +200,37 @@ async def interpret_fn(json: dict):
         if tokens[i]=="LOOP_START":
                 if CELL[POINTER.current]==0:
                         i+=1
-                        loop_count=1
-                        while loop_count>0:
+                        def rec(n=1):
+                                nonlocal i
                                 if tokens[i]=="LOOP_START":
-                                        loop_count+=1
+                                        n+=1
                                 if tokens[i]=="LOOP_END":
-                                        loop_count-=1
+                                        n-=1
                                 i+=1
-                        return (await client.post(f"{http_route}interpret/fn", json={"tokens": tokens, "ASCII": ASCII, "i": i+1, "CELL": CELL, "current": POINTER.current})).json()
+                                if n!=0:
+                                        rec(n)
+                        rec()
+                        return (await client.post(f"{http_route}interpret/fn", json={"tokens": tokens, "ASCII": 
+                                ASCII, "i": i+1, "CELL": CELL, "current": POINTER.current})).json()
 
         if tokens[i]=="LOOP_END":
                 if CELL[POINTER.current]!=0:
                         i-=1
-                        loop_count=1
-                        while loop_count>0:
+                        def rec(n=1):
+                                nonlocal i
                                 if tokens[i]=="LOOP_START":
-                                        loop_count-=1
+                                        n-=1
                                 if tokens[i]=="LOOP_END":
-                                        loop_count+=1
+                                        n+=1
                                 i-=1
-                        return (await client.post(f"{http_route}interpret/fn", json={"tokens": tokens, "ASCII": ASCII, "i": i+1, "CELL": CELL, "current": POINTER.current})).json()
+                                if n!=0:
+                                        rec(n)
+                        rec()
+                        return (await client.post(f"{http_route}interpret/fn", json={"tokens": tokens, "ASCII": 
+                                ASCII, "i": i+1, "CELL": CELL, "current": POINTER.current})).json()
         # best code base ever
-        return (await client.post(f"{http_route}interpret/fn", json={"tokens": tokens, "ASCII": ASCII, "i": i+1, "CELL": CELL, "current": POINTER.current})).json()
+        return (await client.post(f"{http_route}interpret/fn", json={"tokens": tokens, "ASCII": 
+                ASCII, "i": i+1, "CELL": CELL, "current": POINTER.current})).json()
 interpret=create_router(interpret_fn, "/interpret/fn", "/interpret/greet")
 
 
@@ -222,9 +241,7 @@ async def read_until_fn(json: dict):
         char = json["char"]
         file = json["file"]
         rec_n = json["rec_n"]
-
         buff = json["buff"] if "buff" in json else ""
-
         new_char = (await client.post(
                 f"{http_route}buff/fn",
                 json={"file": file, "i": rec_n, "n": rec_n + 1}
@@ -263,7 +280,7 @@ read_until=create_router(read_until_fn, "/read_until/fn", "/read_until/greet")
 async def get_tokens_fn(json: dict):
         rec_n=json["rec_n"] if "rec_n" in json else 0
 
-        await client.get(f"{http_route}get_tokens/greet/greet") # we need to greet the other routes to make sure everything is correct
+        # await client.get(f"{http_route}get_tokens/greet/greet") # we need to greet the other routes to make sure everything is correct
         
         json=(await client.post(f"{http_route}read_until/fn", 
                 json={"char": ",", "file": "main.isl", 
@@ -285,6 +302,7 @@ async def main():
         ASCII=(await client.post(f"{http_route}ascii/fn", json={"arr": [], "i": 0})).json()
         print("ascii table built!!")
         POINTER=Pointer()
+        POINTER.plus1()
         # prcoedure
         await client.post(f"{http_route}make_intermediate/fn", json={"file": "main.sl"})
         print("intermidate language created!!")
@@ -310,4 +328,4 @@ app.include_router(get_tokens)
 
 if __name__ == "__main__":
         threading.Thread(target=lambda: asyncio.run(main())).start()
-        uvicorn.run("main:app", host="127.0.0.1", port=8000)
+        uvicorn.run("main:app", host="127.0.0.1", port=8000, access_log=False)
