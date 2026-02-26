@@ -161,7 +161,7 @@ make_intermediate=create_router(make_intermediate_fn, "/make_intermediate/fn", "
 
 async def interpret_fn(json: dict):
 
-        # await client.get(f"{http_route}interpret/greet/greet") # we need to greet the other routes to make sure everything is correct
+        await client.get(f"{http_route}interpret/greet/greet") # we need to greet the other routes to make sure everything is correct
         tokens=json["tokens"]
         ASCII=json["ASCII"]
         CELL=json["CELL"]
@@ -280,7 +280,7 @@ read_until=create_router(read_until_fn, "/read_until/fn", "/read_until/greet")
 async def get_tokens_fn(json: dict):
         rec_n=json["rec_n"] if "rec_n" in json else 0
 
-        # await client.get(f"{http_route}get_tokens/greet/greet") # we need to greet the other routes to make sure everything is correct
+        await client.get(f"{http_route}get_tokens/greet/greet") # we need to greet the other routes to make sure everything is correct
         
         json=(await client.post(f"{http_route}read_until/fn", 
                 json={"char": ",", "file": "main.isl", 
