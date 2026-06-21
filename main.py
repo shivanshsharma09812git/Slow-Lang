@@ -81,7 +81,7 @@ def create_router(fn, path, greeting):
 
 async def return_ascii_arr_fn(json: dict):
 
-        await client.get(f"{http_route}ascii/greet/greet") # we need to greet the other routes to make sure everything is correct
+        await client.get(f"{http_route}ascii/greet/greet")
         arr=json["arr"]
         i=json["i"]
         arr.append(chr(i))
@@ -105,7 +105,7 @@ class Pointer:
 
 async def get_buff_fn(json: dict):
 
-        await client.get(f"{http_route}buff/greet/greet") # we need to greet the other routes to make sure everything is correct
+        await client.get(f"{http_route}buff/greet/greet")
         with open(json["file"], "rb") as f:
                 return f.read()[json["i"]:json["n"]]
 
@@ -121,7 +121,7 @@ get_len_of_file=create_router(get_len_of_file_fn, "/len/fn", "/len/greet")
 async def get_intermidiate_lang_fn(json: dict):
 
         buff=json["buff"] if "buff" in json else ""
-        await client.get(f"{http_route}intermediate/greet/greet") # we need to greet the other routes to make sure everything is correct
+        await client.get(f"{http_route}intermediate/greet/greet")
         n=json["n"]
         if (await client.post(f"{http_route}buff/fn", json={"file": json["file"], "i": n, "n": n + 1})).content==b'"+"':
                 buff+="PLUS,"
@@ -161,7 +161,7 @@ make_intermediate=create_router(make_intermediate_fn, "/make_intermediate/fn", "
 
 async def interpret_fn(json: dict):
 
-        await client.get(f"{http_route}interpret/greet/greet") # we need to greet the other routes to make sure everything is correct
+        await client.get(f"{http_route}interpret/greet/greet")
         tokens=json["tokens"]
         ASCII=json["ASCII"]
         CELL=json["CELL"]
@@ -280,7 +280,7 @@ read_until=create_router(read_until_fn, "/read_until/fn", "/read_until/greet")
 async def get_tokens_fn(json: dict):
         rec_n=json["rec_n"] if "rec_n" in json else 0
 
-        await client.get(f"{http_route}get_tokens/greet/greet") # we need to greet the other routes to make sure everything is correct
+        await client.get(f"{http_route}get_tokens/greet/greet")
         
         json=(await client.post(f"{http_route}read_until/fn", 
                 json={"char": ",", "file": "main.isl", 
